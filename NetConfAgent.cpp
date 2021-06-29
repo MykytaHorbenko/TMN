@@ -298,8 +298,13 @@ bool NetConfAgent::initSysrepo()
     Connection = std::make_shared<sysrepo::Connection>();
     Session = std::make_shared<sysrepo::Session>(Connection);
     Subscribe = std::make_shared<sysrepo::Subscribe>(Session);
-    //std::cout<<"Session began"<<std::endl;
-    return 1;
+    return true;
+}
+
+bool NetConfAgent::closeSysrepo() 
+{
+    Session->session_stop();
+    return true;
 }
 
 bool NetConfAgent::fetchData(string _xpath, map <string, string>& map)
@@ -508,5 +513,12 @@ bool NetConfAgent::notifySysrepo(string _module_name)
         return -1;
     }
 }
+
+bool NetConfAgent::deleteData(std::string _xpath)
+    {
+
+        Session->delete_item(_xpath.c_str());
+        Session->apply_changes();
+    }
 
 }

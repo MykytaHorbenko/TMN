@@ -39,7 +39,6 @@ namespace mobileclient
 
         string xpathForSubscribe = "/mobile-network:core/subscribers[number='" + _number + "']";
         string xpathForFetch = "/mobile-network:core/subscribers";
-
         _agent->initSysrepo();
 
         if(_name == "")
@@ -125,12 +124,12 @@ namespace mobileclient
         }
 
 
-        if(_state == "busy" && _name == "" && mapFetchData[xPathConstr(_number, "incomingNumber")] == "")
-        {
-            cout<<endl;
-            cout<<"==========Client unregistered========="<<endl;
-            cout<<endl;
-        }
+        // if(_state == "busy" && _name == "" && mapFetchData[xPathConstr(_number, "incomingNumber")] == "")
+        // {
+        //     cout<<endl;
+        //     cout<<"==========Client unregistered========="<<endl;
+        //     cout<<endl;
+        // }
 
     };
 
@@ -143,11 +142,18 @@ namespace mobileclient
 
     bool MobileClient::makeCall(std::string number)
     {
-        string xpathOtherClient = "/mobile-network:core/subscribers[number='" + number + "']";
+        string xpathOtherClient = "/mobile-network:core/subscribers";
 
         map < string, string > mapCheckNumber;
         _agent->fetchData(xpathOtherClient, mapCheckNumber);
 
+    if(mapCheckNumber[xPathConstr(number, "number")] != number)
+    {
+        cout<<"this number doesn't exist!!!"<<endl;
+        return false;
+    }
+    else 
+    {
         if(mapCheckNumber[xPathConstr(number, "state")] != "idle")
         {
             cout<<"Client busy!!!"<<endl;
@@ -166,7 +172,7 @@ namespace mobileclient
             _agent->changeData(xPathConstr(_number, "state"), "active");
             _agent->changeData(xPathConstr(number, "state"), "active");
         }
-
+    }
         _outcomingNumber = number;
     }
 
@@ -179,10 +185,6 @@ namespace mobileclient
 
     bool MobileClient::answerCall()
     {
-        //string xpathMyState = MobileClient::state(_number);
-        
-        //string xpathOtherState = MobileClient::state(_incomingNumber);
-
         if(_incomingNumber != "")
         {
         _agent->changeData(xPathConstr(_number, "state"), "busy");
@@ -199,8 +201,6 @@ namespace mobileclient
     {
         string xpathCheckState = "/mobile-network:core/subscribers";
         incNumOld = _incomingNumber;
-        // cout<<"_incomingNumber = "<<_incomingNumber<<endl;
-        // cout<<"outcomingNumber = "<<_outcomingNumber<<endl;
 
         map < string, string > mapCheckState;
         _agent->fetchData(xpathCheckState, mapCheckState);
@@ -237,8 +237,7 @@ namespace mobileclient
         string xpathCheckState = "/mobile-network:core/subscribers";
 
         incNumOld = _incomingNumber;
-        cout<<"_incomingNumber = "<<_incomingNumber<<endl;
-        cout<<"outcomingNumber = "<<_outcomingNumber<<endl;
+
         map < string, string > mapCheckState;
         _agent->fetchData(xpathCheckState, mapCheckState);
 
@@ -279,18 +278,25 @@ namespace mobileclient
 
         if(_state == "idle" && _incomingNumber == "")
         {
-            _name = "";
-            _agent->registerOperData(*this, xpathForSubscribe);
-            _agent->changeData(xPathConstr(_number, "state"), "busy");
-            _number = "";
-            _agent->changeData(xPathConstr(_number, "number"), _number);
-            _agent.~unique_ptr();
+            _agent->deleteData(xpathForSubscribe);
+   
+            _name.erase();
+            _number.erase();
+            _incomingNumber.erase();
+            _outcomingNumber.erase();
+            _state.erase();
+
+            _agent->closeSysrepo();
+            _agent.reset();
+
+            cout<<endl;
+            cout<<"==========Client unregistered========="<<endl;
+            cout<<endl;
         }
         else
         {
             cout<<"Client busy!!!"<<endl;
             return false;
         }
-        _state = "busy";
     }
 }

@@ -85,6 +85,12 @@ class NetConfAgent
 *@return true if ok, otherwise false
 */   
     bool changeData(std::string _xpath, std::string newValue);
+
+    bool deleteData(std::string _xpath);
+
+    bool closeSysrepo();
+    
+
     private:
     S_Connection Connection;
     S_Session Session;
