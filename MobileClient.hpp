@@ -19,13 +19,10 @@ namespace mobileclient
 class MobileClient
 {
     public:
-/*
-*@brief initSysrepo. 
-*This method initializes a session with the server
-*
-*@return true if ok, otherwise false
-*/
+
     MobileClient();
+
+    MobileClient(std::unique_ptr<Netconfagent::NetConfAgent> netConfAgent);
     
     bool registerClient(std::string number);
 
@@ -48,6 +45,9 @@ class MobileClient
     bool endCall();
 
     void setName(std::string name);
+
+    std::string getName();
+
 
     private:
     std::unique_ptr<Netconfagent::NetConfAgent> _agent;

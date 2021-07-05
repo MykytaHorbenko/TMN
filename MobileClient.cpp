@@ -27,11 +27,21 @@ namespace
 
 namespace mobileclient
 {
-    MobileClient::MobileClient()
-        : _state{kState},
-          _callState {false},
-          _agent{make_unique<Netconfagent::NetConfAgent>()}
-    {} 
+
+    MobileClient::MobileClient() 
+    : MobileClient::MobileClient{make_unique<Netconfagent::NetConfAgent>()}
+  {}
+
+  MobileClient::MobileClient(unique_ptr<Netconfagent::NetConfAgent> netConfAgent)
+      : _state{kState},
+        _callState {false}, 
+        _agent{move(netConfAgent)}
+  {}
+
+    string MobileClient::getName()
+    {
+        return _name;
+    };
 
     bool MobileClient::registerClient(std::string number)
     {
@@ -46,14 +56,14 @@ namespace mobileclient
             cout << endl << "Name isn`t setted" << endl;
             return false;
         }
-        if(_name != "")
+        else
         {
             _agent->changeData(xPathConstr(_number, "state"), _state);
             _agent->changeData(xPathConstr(_number, "number"), number);
             _agent->registerOperData(*this, xpathForSubscribe);
+            _agent->subscribeForModelChanges(*this);
         }
 
-        _agent->subscribeForModelChanges(*this, xpathForFetch);
         cout << endl << "Client " << _name << " registered with this number " << _number << endl;
     };
 
@@ -122,15 +132,6 @@ namespace mobileclient
             cout<<endl;
             incNumOld = "";
         }
-
-
-        // if(_state == "busy" && _name == "" && mapFetchData[xPathConstr(_number, "incomingNumber")] == "")
-        // {
-        //     cout<<endl;
-        //     cout<<"==========Client unregistered========="<<endl;
-        //     cout<<endl;
-        // }
-
     };
 
     void MobileClient::handleOperData(std::string& name, std::string& xPath) const
@@ -142,10 +143,9 @@ namespace mobileclient
 
     bool MobileClient::makeCall(std::string number)
     {
-        string xpathOtherClient = "/mobile-network:core/subscribers";
 
         map < string, string > mapCheckNumber;
-        _agent->fetchData(xpathOtherClient, mapCheckNumber);
+        _agent->fetchData(mapCheckNumber);
 
     if(mapCheckNumber[xPathConstr(number, "number")] != number)
     {
@@ -163,6 +163,12 @@ namespace mobileclient
         if(mapCheckNumber[xPathConstr(number, "number")] == _number)
         {
             cout<<"This is your number!!!"<<endl;
+            return false;
+        }
+
+        if(_state != "idle")
+        {
+            cout<<"You already have call!!!"<<endl;
             return false;
         }
 
@@ -199,11 +205,7 @@ namespace mobileclient
 
     bool MobileClient::rejectCall()
     {
-        string xpathCheckState = "/mobile-network:core/subscribers";
         incNumOld = _incomingNumber;
-
-        map < string, string > mapCheckState;
-        _agent->fetchData(xpathCheckState, mapCheckState);
 
         if(_state == "idle")
         {
@@ -234,20 +236,15 @@ namespace mobileclient
 
     bool MobileClient::endCall()
     {
-        string xpathCheckState = "/mobile-network:core/subscribers";
-
         incNumOld = _incomingNumber;
 
-        map < string, string > mapCheckState;
-        _agent->fetchData(xpathCheckState, mapCheckState);
-
-        if(mapCheckState[xPathConstr(_number, "state")] == "idle")
+        if(_state == "idle")
         {
             cout<<"Call doesn't exist"<<endl;
             return false;
         }
 
-        if(mapCheckState[xPathConstr(_number, "state")] == "active")
+        if(_state == "active")
         {
             cout<<"You didn't answer the call!!!"<<endl;
             return false;
@@ -270,15 +267,11 @@ namespace mobileclient
 
     bool MobileClient::unRegisterClient()
     {
-        map < string, string > mapCheck;
-        string xpathToMe = "/mobile-network:core/subscribers";
-        _agent->fetchData(xpathToMe, mapCheck);
-
-        string xpathForSubscribe = "/mobile-network:core/subscribers[number='" + _number + "']";
+        string xpathForDelete = "/mobile-network:core/subscribers[number='" + _number + "']";
 
         if(_state == "idle" && _incomingNumber == "")
         {
-            _agent->deleteData(xpathForSubscribe);
+            _agent->deleteData(xpathForDelete);
    
             _name.erase();
             _number.erase();

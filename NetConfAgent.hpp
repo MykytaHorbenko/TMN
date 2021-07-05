@@ -21,13 +21,15 @@ namespace Netconfagent
 class NetConfAgent
 {
     public:
+    
+    virtual ~NetConfAgent();
 /*
 *@brief initSysrepo. 
 *This method initializes a session with the server
 *
 *@return true if ok, otherwise false
 */
-    bool initSysrepo();
+    bool virtual initSysrepo();
 /*
 *@brief brief fetchData. 
 *This method receives data from the model and writes to the container
@@ -37,7 +39,7 @@ class NetConfAgent
 *
 *@return true if ok, otherwise false
 */
-    bool fetchData(std::string xpath, std::map <std::string, std::string>& map);
+    bool virtual fetchData(std::map <std::string, std::string>& map);
 /*
 *@brief subscribeForModelChanges. 
 *This method reacts to changes in the model and prints them
@@ -46,7 +48,7 @@ class NetConfAgent
 *
 *@return true if ok, otherwise false
 */
-    bool subscribeForModelChanges(mobileclient::MobileClient& client, std::string& xpathForFetch);
+    bool virtual subscribeForModelChanges(mobileclient::MobileClient& client);
 /*
 *@brief registerOperData. 
 *This method receives operdata from the model and set them
@@ -55,7 +57,7 @@ class NetConfAgent
 *
 *@return true if ok, otherwise false
 */
-    bool registerOperData(mobileclient::MobileClient& client, std::string xpathForSubscribe);
+    bool virtual registerOperData(mobileclient::MobileClient& client, std::string xpathForSubscribe);
 /*
 *@brief subscribeForRpc. 
 *This method makes RPC call and receives return value from the model
@@ -65,7 +67,7 @@ class NetConfAgent
 *
 *@return true if ok, otherwise false
 */
-    bool subscribeForRpc(std::string _module_name, std::string _rpc_xpath);
+    bool virtual subscribeForRpc(std::string _module_name, std::string _rpc_xpath);
 /*
 *@brief notifySysrepo. 
 *This method sends notification in model
@@ -84,13 +86,24 @@ class NetConfAgent
 *
 *@return true if ok, otherwise false
 */   
-    bool changeData(std::string _xpath, std::string newValue);
-
-    bool deleteData(std::string _xpath);
-
-    bool closeSysrepo();
+    bool virtual changeData(std::string _xpath, std::string newValue);
+ /*
+*@brief deleteData. 
+*This method delete values from server
+*
+*@param xpath the path on which the data will be deleted
+*
+*@return true if ok, otherwise false
+*/
+    bool virtual deleteData(std::string _xpath);
+ /*
+*@brief closeSysrepo. 
+*This method closed Sysrepo session
+*
+*@return true if ok, otherwise false
+*/
+    bool virtual closeSysrepo();
     
-
     private:
     S_Connection Connection;
     S_Session Session;
