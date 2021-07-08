@@ -1,5 +1,3 @@
-#pragma once
-
 #include "NetConfAgent.hpp"
 #include "MobileClient.hpp"
 
@@ -11,56 +9,56 @@ namespace
     const int MAX_LEN = 100;
 
     /* Helper function for printing nodes. */
-void print_node(libyang::S_Data_Node &node)
-{
-    libyang::S_Schema_Node schema = node->schema();
+// void print_node(libyang::S_Data_Node &node)
+// {
+//     libyang::S_Schema_Node schema = node->schema();
 
-    //cout << nodetype2str(schema->nodetype()) << " \"" << schema->name() << '\"' << endl;
-    cout << '\t' << "Path: " << node->path() << endl;
-    //cout << '\t' << "Default: " << (node->dflt() ? "yes" : "no") << endl;
+//     //cout << nodetype2str(schema->nodetype()) << " \"" << schema->name() << '\"' << endl;
+//     cout << '\t' << "Path: " << node->path() << endl;
+//     //cout << '\t' << "Default: " << (node->dflt() ? "yes" : "no") << endl;
 
-    /* type-specific print */
-    switch (schema->nodetype()) {
-    case LYS_CONTAINER:
-    {
-        // libyang::Schema_Node_Container scont(schema);
+//     /* type-specific print */
+//     switch (schema->nodetype()) {
+//     case LYS_CONTAINER:
+//     {
+//         // libyang::Schema_Node_Container scont(schema);
 
-        // cout << '\t' << "Presence: " << (scont.presence() ? "yes" : "no") << endl;
-        break;
-    }
-    case LYS_LEAF:
-    {
-        libyang::Data_Node_Leaf_List leaf(node);
-        libyang::Schema_Node_Leaf sleaf(schema);
+//         // cout << '\t' << "Presence: " << (scont.presence() ? "yes" : "no") << endl;
+//         break;
+//     }
+//     case LYS_LEAF:
+//     {
+//         libyang::Data_Node_Leaf_List leaf(node);
+//         libyang::Schema_Node_Leaf sleaf(schema);
 
-        cout << '\t' << "Value: \"" << leaf.value_str() << '\"' << endl;
-        //cout << '\t' << "Is key: " << (sleaf.is_key() ? "yes" : "no") << endl;
-        break;
-    }
-    case LYS_LEAFLIST:
-    {
-        libyang::Data_Node_Leaf_List leaflist(node);
+//         cout << '\t' << "Value: \"" << leaf.value_str() << '\"' << endl;
+//         //cout << '\t' << "Is key: " << (sleaf.is_key() ? "yes" : "no") << endl;
+//         break;
+//     }
+//     case LYS_LEAFLIST:
+//     {
+//         libyang::Data_Node_Leaf_List leaflist(node);
 
-        cout << '\t' << "Value: \"" << leaflist.value_str() << '\"' << endl;
-        break;
-    }
-    case LYS_LIST:
-    {
-        // libyang::Schema_Node_List slist(schema);
+//         cout << '\t' << "Value: \"" << leaflist.value_str() << '\"' << endl;
+//         break;
+//     }
+//     case LYS_LIST:
+//     {
+//         // libyang::Schema_Node_List slist(schema);
 
-        // cout << '\t' << "Keys:";
-        // for (libyang::S_Schema_Node_Leaf &key : slist.keys()) {
-        //     cout << ' ' << key->name();
-        // }
-        // cout << endl;
-        break;
-    }
-    default:
-        break;
-    }
+//         // cout << '\t' << "Keys:";
+//         // for (libyang::S_Schema_Node_Leaf &key : slist.keys()) {
+//         //     cout << ' ' << key->name();
+//         // }
+//         // cout << endl;
+//         break;
+//     }
+//     default:
+//         break;
+//     }
 
-    cout << endl;
-}
+//     cout << endl;
+// }
 
 /* Helper function for writing notes to map. */
 void write_node(libyang::S_Data_Node &node, map <string, string>& map)
@@ -120,109 +118,109 @@ void write_node(libyang::S_Data_Node &node, map <string, string>& map)
 }
 
 /* Helper function for printing events. */
-const char *ev_to_str(sr_event_t ev) {
-    switch (ev) {
-    case SR_EV_CHANGE:
-        return "change";
-    case SR_EV_DONE:
-        return "done";
-    case SR_EV_ABORT:
-    default:
-        return "abort";
-    }
-}
+// const char *ev_to_str(sr_event_t ev) {
+//     switch (ev) {
+//     case SR_EV_CHANGE:
+//         return "change";
+//     case SR_EV_DONE:
+//         return "done";
+//     case SR_EV_ABORT:
+//     default:
+//         return "abort";
+//     }
+// }
 
 /* Helper function for writing changes given operation to map, old and new value. */
-void print_change(sysrepo::S_Change change) 
-{
-    cout << endl;
-    switch(change->oper()) {
-    case SR_OP_CREATED:
-        if (nullptr != change->new_val()) {
-           cout <<"CREATED: ";
-           cout << change->new_val()->to_string();
-        }
-        break;
-    case SR_OP_DELETED:
-        if (nullptr != change->old_val()) {
-           cout << "DELETED: ";
-           cout << change->old_val()->to_string();
-        }
-    break;
-    case SR_OP_MODIFIED:
-        if (nullptr != change->old_val() && nullptr != change->new_val()) {
-           cout << "MODIFIED: ";
-           cout << "old value ";
-           cout << change->old_val()->to_string();
-           cout << "new value ";
-           cout << change->new_val()->to_string();
-        }
-    break;
-    case SR_OP_MOVED:
-        if (nullptr != change->old_val() && nullptr != change->new_val()) {
-           cout << "MOVED: ";
-           cout << change->new_val()->xpath();
-           cout << " after ";
-           cout << change->old_val()->xpath();
-        } else if (nullptr != change->new_val()) {
-           cout << "MOVED: ";
-           cout << change->new_val()->xpath();
-           cout << " first";
-        }
-    break;
-    }
-}
+// void print_change(sysrepo::S_Change change) 
+// {
+//     cout << endl;
+//     switch(change->oper()) {
+//     case SR_OP_CREATED:
+//         if (nullptr != change->new_val()) {
+//            cout <<"CREATED: ";
+//            cout << change->new_val()->to_string();
+//         }
+//         break;
+//     case SR_OP_DELETED:
+//         if (nullptr != change->old_val()) {
+//            cout << "DELETED: ";
+//            cout << change->old_val()->to_string();
+//         }
+//     break;
+//     case SR_OP_MODIFIED:
+//         if (nullptr != change->old_val() && nullptr != change->new_val()) {
+//            cout << "MODIFIED: ";
+//            cout << "old value ";
+//            cout << change->old_val()->to_string();
+//            cout << "new value ";
+//            cout << change->new_val()->to_string();
+//         }
+//     break;
+//     case SR_OP_MOVED:
+//         if (nullptr != change->old_val() && nullptr != change->new_val()) {
+//            cout << "MOVED: ";
+//            cout << change->new_val()->xpath();
+//            cout << " after ";
+//            cout << change->old_val()->xpath();
+//         } else if (nullptr != change->new_val()) {
+//            cout << "MOVED: ";
+//            cout << change->new_val()->xpath();
+//            cout << " first";
+//         }
+//     break;
+//     }
+// }
 
 /* Helper function for printing changes given operation, old and new value. */
-void write_change(sysrepo::S_Change change, map <string, string>& map) 
-{
-    string path, value;
-    cout << endl;
-    switch(change->oper()) {
-    case SR_OP_CREATED:
-        if (nullptr != change->new_val()) {
-            path = "inputNumber";
-            value = change->new_val()->data()->get_string();
-            //cout << change->new_val()->to_string();
-            map.emplace(path, value);
-        }
-        break;
-    case SR_OP_DELETED:
-        if (nullptr != change->old_val()) {
-           cout << "DELETED: ";
-           cout << change->old_val()->to_string();
-        }
-    break;
-    case SR_OP_MODIFIED:
-        if (nullptr != change->old_val() && nullptr != change->new_val()) {
-           cout << "MODIFIED: ";
-           cout << "old value ";
-           cout << change->old_val()->to_string();
-           cout << "new value ";
-           cout << change->new_val()->to_string();
-        }
-    break;
-    case SR_OP_MOVED:
-        if (nullptr != change->old_val() && nullptr != change->new_val()) {
-           cout << "MOVED: ";
-           cout << change->new_val()->xpath();
-           cout << " after ";
-           cout << change->old_val()->xpath();
-        } else if (nullptr != change->new_val()) {
-           cout << "MOVED: ";
-           cout << change->new_val()->xpath();
-           cout << " first";
-        }
-    break;
-    }
-}
+// void write_change(sysrepo::S_Change change, map <string, string>& map) 
+// {
+//     string path, value;
+//     cout << endl;
+//     switch(change->oper()) {
+//     case SR_OP_CREATED:
+//         if (nullptr != change->new_val()) {
+//             path = "inputNumber";
+//             value = change->new_val()->data()->get_string();
+//             //cout << change->new_val()->to_string();
+//             map.emplace(path, value);
+//         }
+//         break;
+//     case SR_OP_DELETED:
+//         if (nullptr != change->old_val()) {
+//            cout << "DELETED: ";
+//            cout << change->old_val()->to_string();
+//         }
+//     break;
+//     case SR_OP_MODIFIED:
+//         if (nullptr != change->old_val() && nullptr != change->new_val()) {
+//            cout << "MODIFIED: ";
+//            cout << "old value ";
+//            cout << change->old_val()->to_string();
+//            cout << "new value ";
+//            cout << change->new_val()->to_string();
+//         }
+//     break;
+//     case SR_OP_MOVED:
+//         if (nullptr != change->old_val() && nullptr != change->new_val()) {
+//            cout << "MOVED: ";
+//            cout << change->new_val()->xpath();
+//            cout << " after ";
+//            cout << change->old_val()->xpath();
+//         } else if (nullptr != change->new_val()) {
+//            cout << "MOVED: ";
+//            cout << change->new_val()->xpath();
+//            cout << " first";
+//         }
+//     break;
+//     }
+// }
 
 /* Helper function for exiting app. */
-volatile int exit_application = 0;
-void sigint_handler(int signum)
-{
-    exit_application = 1;
-}
+// volatile int exit_application = 0;
+// void sigint_handler(int signum)
+// {
+//     exit_application = 1;
+// }
 
 /* Helper function for printing values. */
 void print_value(sysrepo::S_Val value)
@@ -305,10 +303,23 @@ bool NetConfAgent::initSysrepo()
 
 bool NetConfAgent::closeSysrepo() 
 {
-        Session->session_stop();
-        Session.reset();
+        // Session->session_stop();
+
+        // Session.reset();
+
         Connection.reset();
+
         Subscribe.reset();
+
+    return true;
+}
+
+bool NetConfAgent::closeSession() 
+{
+        Session->session_stop();
+
+        Session.reset();
+
     return true;
 }
 
@@ -341,9 +352,8 @@ bool NetConfAgent::subscribeForModelChanges(mobileclient::MobileClient& client)
 
         auto cb = [=, &client] (sysrepo::S_Session Session, const char *module_name, const char *xpath, sr_event_t event,
             uint32_t request_id) mutable {
-            char change_path[MAX_LEN];
                 map < string, string > mapFetchData;
-                if(ev_to_str(event) == "done")
+                if(event == SR_EV_DONE)
                 {
                 fetchData(mapFetchData);
                 client.handleModuleChange(mapFetchData);
@@ -381,7 +391,7 @@ bool NetConfAgent::registerOperData(mobileclient::MobileClient& client, std::str
             
         };
         Subscribe->oper_get_items_subscribe(module_name, cb2, xpathForSubscribePtr);
-
+    return true;
 }
 
 bool NetConfAgent::changeData(string _xpath, string _newValue)
@@ -397,6 +407,7 @@ bool NetConfAgent::changeData(string _xpath, string _newValue)
     } catch( const std::exception& e ) {
         cout << e.what() << endl;
     }
+    return true;
 }
 
 bool NetConfAgent::subscribeForRpc(string _module_name, string _rpc_xpath)
@@ -446,6 +457,7 @@ bool NetConfAgent::subscribeForRpc(string _module_name, string _rpc_xpath)
         cout << e.what() << endl;
         return -1;
     }
+    return true;
 }
 
 bool NetConfAgent::notifySysrepo(string _module_name)
@@ -487,13 +499,16 @@ bool NetConfAgent::notifySysrepo(string _module_name)
         cout << e.what() << endl;
         return -1;
     }
+    return true;
 }
 
 bool NetConfAgent::deleteData(std::string _xpath)
     {
-
         Session->delete_item(_xpath.c_str());
-        Session->apply_changes();
-    }
 
+        Session->apply_changes();
+
+        return true;
+    }
+    
 }

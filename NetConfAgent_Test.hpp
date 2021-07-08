@@ -25,6 +25,8 @@ class MockNetConfAgent : public NetConfAgent
     MOCK_METHOD(bool, deleteData, (std::string _xpath), (override));
 
     MOCK_METHOD(bool, closeSysrepo, (), (override));
+
+    MOCK_METHOD(bool, closeSession, (), (override));
 };
 
 

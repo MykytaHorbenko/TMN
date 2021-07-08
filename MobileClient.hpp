@@ -57,9 +57,6 @@ class MobileClient
     std::string _outcomingNumber;
     std::string _state;
     bool _callState;
-    
-
-
 };
 
 }

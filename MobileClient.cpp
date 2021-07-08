@@ -1,5 +1,3 @@
-#pragma once
-
 #include "MobileClient.hpp"
 #include <regex>
 
@@ -27,26 +25,25 @@ namespace
 
 namespace mobileclient
 {
+    MobileClient::MobileClient(unique_ptr<Netconfagent::NetConfAgent> netConfAgent)
+      : _agent{move(netConfAgent)},
+        _state{kState},
+        _callState {false}
+  {}
 
     MobileClient::MobileClient() 
     : MobileClient::MobileClient{make_unique<Netconfagent::NetConfAgent>()}
   {}
 
-  MobileClient::MobileClient(unique_ptr<Netconfagent::NetConfAgent> netConfAgent)
-      : _state{kState},
-        _callState {false}, 
-        _agent{move(netConfAgent)}
-  {}
-
     string MobileClient::getName()
     {
         return _name;
-    };
+    }
 
     bool MobileClient::registerClient(std::string number)
     {
         _number = number;
-
+        _state = kState;
         string xpathForSubscribe = "/mobile-network:core/subscribers[number='" + _number + "']";
         string xpathForFetch = "/mobile-network:core/subscribers";
         _agent->initSysrepo();
@@ -65,7 +62,8 @@ namespace mobileclient
         }
 
         cout << endl << "Client " << _name << " registered with this number " << _number << endl;
-    };
+        return true;
+    }
 
     void MobileClient::handleModuleChange(map < string, string >& mapFetchData) 
     {
@@ -132,7 +130,7 @@ namespace mobileclient
             cout<<endl;
             incNumOld = "";
         }
-    };
+    }
 
     void MobileClient::handleOperData(std::string& name, std::string& xPath) const
     {
@@ -180,6 +178,7 @@ namespace mobileclient
         }
     }
         _outcomingNumber = number;
+        return true;
     }
 
     void MobileClient::setName(std::string name)
@@ -201,6 +200,7 @@ namespace mobileclient
             cout<<"You don`t have incoming call"<<endl;
             return false;
         }
+        return true;
     }
 
     bool MobileClient::rejectCall()
@@ -232,6 +232,7 @@ namespace mobileclient
         _agent->changeData(xPathConstr(_number, "state"), "idle");
         _agent->changeData(xPathConstr(_outcomingNumber, "state"), "idle");
         }
+        return true;
     }
 
     bool MobileClient::endCall()
@@ -263,6 +264,7 @@ namespace mobileclient
         _agent->changeData(xPathConstr(_outcomingNumber, "incomingNumber"), "");
         _agent->changeData(xPathConstr(_outcomingNumber, "state"), "idle");
         }
+        return true;
     }
 
     bool MobileClient::unRegisterClient()
@@ -271,16 +273,17 @@ namespace mobileclient
 
         if(_state == "idle" && _incomingNumber == "")
         {
+            _agent->closeSysrepo();
+
             _agent->deleteData(xpathForDelete);
+
+            _agent->closeSession();
    
             _name.erase();
             _number.erase();
             _incomingNumber.erase();
             _outcomingNumber.erase();
             _state.erase();
-
-            _agent->closeSysrepo();
-            _agent.reset();
 
             cout<<endl;
             cout<<"==========Client unregistered========="<<endl;
@@ -291,5 +294,6 @@ namespace mobileclient
             cout<<"Client busy!!!"<<endl;
             return false;
         }
+        return true;
     }
 }

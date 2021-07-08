@@ -103,6 +103,9 @@ class NetConfAgent
 *@return true if ok, otherwise false
 */
     bool virtual closeSysrepo();
+
+    bool virtual closeSession();
+
     
     private:
     S_Connection Connection;

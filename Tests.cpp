@@ -107,12 +107,13 @@ TEST_F(MobileClientTest, RegisterClientFalse)
 
 EXPECT_CALL(*_mock, initSysrepo())
             .WillOnce(Return(true));
-
+            
 EXPECT_FALSE(_mobileClient->registerClient(number));
 }
 
 TEST_F(MobileClientTest, makeCallTrue)
 {
+    registerTestClient("Max", "111");
     std::string number = "222";
     std::string state = "idle";
 
@@ -125,10 +126,33 @@ TEST_F(MobileClientTest, makeCallTrue)
                 .WillOnce(DoAll(SetArgReferee<0>(testMap),
                             Return(true)));
 
-    EXPECT_CALL(*_mock, changeData(_,_))
-               .Times(3);
+    EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='222']/incomingNumber","111"))
+                        .WillOnce(Return(true));
+    EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/state","active"))
+                        .WillOnce(Return(true));
+    EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='222']/state","active"))
+                        .WillOnce(Return(true));
 
     EXPECT_TRUE(_mobileClient->makeCall("222"));
+}
+
+TEST_F(MobileClientTest, makeCallFalse_CallAlreadyExist)
+{
+    registerTestClient("Max", "111");
+    callHandleModuleChange("111", "busy", "");
+    std::string number = "222";
+    std::string state = "idle";
+
+    std::string xpathNumber = "/mobile-network:core/subscribers[number='222']/number";
+    std::string xpathState = "/mobile-network:core/subscribers[number='222']/state";
+
+    std::map <std::string, std::string> testMap = {{xpathNumber, number}, {xpathState, state}};
+
+    EXPECT_CALL(*_mock, fetchData(_))
+                .WillOnce(DoAll(SetArgReferee<0>(testMap),
+                            Return(true)));
+
+    EXPECT_FALSE(_mobileClient->makeCall("222"));
 }
 
 TEST_F(MobileClientTest, makeCallFalse_MyNumber)
@@ -195,9 +219,10 @@ TEST_F(MobileClientTest, answerCallTrue)
 registerTestClient("Max","111");
 callHandleModuleChange("111", "busy", "222");
 
-EXPECT_CALL(*_mock, changeData(_,_))
-            .Times(2)
-            .WillRepeatedly(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/state","busy"))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='222']/state","busy"))
+                    .WillOnce(Return(true));
 
 EXPECT_TRUE(_mobileClient->answerCall());
 }
@@ -216,9 +241,12 @@ TEST_F(MobileClientTest, rejectCallTrue_ByMe)
 registerTestClient("Max","111");
 callHandleModuleChange("111", "active", "222");
 
-EXPECT_CALL(*_mock, changeData(_,_))
-            .Times(3)
-            .WillRepeatedly(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='222']/state","idle"))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/state","idle"))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/incomingNumber",""))
+                    .WillOnce(Return(true));
 
 EXPECT_TRUE(_mobileClient->rejectCall());
 }
@@ -234,9 +262,12 @@ makeCallTest("111");
 callHandleModuleChange("222", "active", "");
 
 
-EXPECT_CALL(*_mock, changeData(_,_))
-            .Times(3)
-            .WillRepeatedly(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/incomingNumber",""))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='222']/state","idle"))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/state","idle"))
+                    .WillOnce(Return(true));
 
 EXPECT_TRUE(_mobileClient->rejectCall());
 }
@@ -267,9 +298,12 @@ TEST_F(MobileClientTest, endCallTrue_ByMe)
 registerTestClient("Max","111");
 callHandleModuleChange("111", "busy", "222");
 
-EXPECT_CALL(*_mock, changeData(_,_))
-            .Times(3)
-            .WillRepeatedly(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='222']/state","idle"))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/state","idle"))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/incomingNumber",""))
+                    .WillOnce(Return(true));
 
 EXPECT_TRUE(_mobileClient->endCall());
 }
@@ -283,10 +317,12 @@ registerTestClient("Anna","222");
 makeCallTest("111");
 callHandleModuleChange("222", "busy", "");
 
-
-EXPECT_CALL(*_mock, changeData(_,_))
-            .Times(3)
-            .WillRepeatedly(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/incomingNumber",""))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='222']/state","idle"))
+                    .WillOnce(Return(true));
+EXPECT_CALL(*_mock, changeData("/mobile-network:core/subscribers[number='111']/state","idle"))
+                    .WillOnce(Return(true));
 
 EXPECT_TRUE(_mobileClient->endCall());
 }
@@ -312,13 +348,14 @@ TEST_F(MobileClientTest, unregisterClientTrue)
 registerTestClient("Max","111");
 callHandleModuleChange("111", "idle", "");
 
-EXPECT_CALL(*_mock, deleteData(_))
-            .Times(1)
-            .WillRepeatedly(Return(true));
-
 EXPECT_CALL(*_mock, closeSysrepo())
-            .Times(1)
-            .WillRepeatedly(Return(true));
+            .WillOnce(Return(true));
+
+EXPECT_CALL(*_mock, deleteData("/mobile-network:core/subscribers[number='111']"))
+            .WillOnce(Return(true));
+
+EXPECT_CALL(*_mock, closeSession())
+            .WillOnce(Return(true));
 
 EXPECT_TRUE(_mobileClient->unRegisterClient());
 }
@@ -331,7 +368,40 @@ callHandleModuleChange("111", "busy", "");
 EXPECT_FALSE(_mobileClient->unRegisterClient());
 }
 
+TEST_F(MobileClientTest, unregisterClientTrue1)
+{
+registerTestClient("Max","111");
+callHandleModuleChange("111", "idle", "");
 
+EXPECT_CALL(*_mock, closeSysrepo())
+            .WillOnce(Return(true));
 
+EXPECT_CALL(*_mock, deleteData("/mobile-network:core/subscribers[number='111']"))
+            .WillOnce(Return(true));
+
+EXPECT_CALL(*_mock, closeSession())
+            .WillOnce(Return(true));
+
+EXPECT_TRUE(_mobileClient->unRegisterClient());
+
+registerTestClient("Max","111");
+}
+
+// TEST_F(MobileClientTest, handleModuleChange)
+// {
+//     //callHandleModuleChange("111", "idle", "");
+
+//     std::string state = "idle";
+//     std::string incomingNumber = "222";
+
+//     std::string xpathState = "/mobile-network:core/subscribers[number='111']/state";
+//     std::string xpathIncNumber = "/mobile-network:core/subscribers[number='111']/incomingNumber";
+
+//     std::map <std::string, std::string> testMap = {{xpathState, state}, {xpathIncNumber, incomingNumber}};
+
+//     _mobileClient->handleModuleChange(testMap);
+
+// EXPECT_CALL(*_mock, subscribeForModelChanges(_));
+// }
 
 
